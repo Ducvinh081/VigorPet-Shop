@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { SessionStrategy } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
@@ -6,10 +6,9 @@ import connectDB from "@/libs/mongoConnect";
 import { User } from "@/models/User";
 import { UserInfo } from "@/models/UserInfo";
 import { getServerSession } from "next-auth/next";
-
 export const authOptions = {
   session: {
-    strategy: "jwt", 
+    strategy: "jwt" as SessionStrategy,
     
   },
   providers: [
@@ -94,13 +93,6 @@ export const authOptions = {
 
   secret: process.env.SECRET,
 };
-export async function isAdmin() { // No 'request' parameter needed here for App Router Route Handler context
-  const session = await getServerSession(authOptions); // This should now work
-  if (!session?.user?.email) return false;
 
-  await connectDB(); // Ensure connectDB is imported and works
-  const info = await UserInfo.findOne({ email: session.user.email }); // Ensure UserInfo model is imported
-  return info?.admin || false;
-}
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
