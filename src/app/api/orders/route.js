@@ -1,7 +1,6 @@
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions, isAdmin} from "@/app/api/auth/[...nextauth]/route";
 import {Order} from "@/models/Order";
 import connectDB from "@/libs/mongoConnect";
-import { isAdmin } from "@/libs/isAdmin";
 import {getServerSession} from "next-auth";
 
 export async function GET(req) {
