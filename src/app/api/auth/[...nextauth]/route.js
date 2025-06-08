@@ -1,5 +1,5 @@
-// src/app/api/auth/[...nextauth]/route.js
-import NextAuth from "next-auth";
-import { authOptions } from "@/libs/authOptions";
+import NextAuth from "next-auth/next";
+import authOptions from "./options";
 
-export default NextAuth(authOptions);
+const auth = NextAuth(authOptions);
+export { auth as GET, auth as POST };
