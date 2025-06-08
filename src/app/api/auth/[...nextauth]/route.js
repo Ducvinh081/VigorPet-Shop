@@ -1,23 +1,20 @@
-import NextAuth, { SessionStrategy } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import connectDB from "@/libs/mongoConnect";
 import { User } from "@/models/User";
-import { getServerSession } from "next-auth/next";
 import { UserInfo } from "@/models/UserInfo";
+
 export const authOptions = {
   session: {
     strategy: "jwt",
-    
   },
   providers: [
-    // --- Google Provider ---
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       async profile(profile) {
-      
         await connectDB();
         const email = profile.email;
         let user = await User.findOne({ email });
@@ -27,7 +24,6 @@ export const authOptions = {
             email,
             name: profile.name,
             image: profile.picture,
-            // Mật khẩu trống vì Google login
           });
         } else {
           user.name = profile.name;
@@ -44,12 +40,11 @@ export const authOptions = {
       },
     }),
 
-    // --- Credentials Provider ---
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "test@example.com" },
-        password: { label: "Password", type: "password" },
+        email: { label: "E-mail", type: "email", placeholder: "test@example.com" },
+        password: { label: "Mật khẩu", type: "password" },
       },
       async authorize(credentials) {
         await connectDB();
@@ -58,7 +53,7 @@ export const authOptions = {
         if (!email || !password) return null;
 
         const user = await User.findOne({ email });
-        if (!user || !user.password) return null; // nếu user không tồn tại hoặc là Google-only account
+        if (!user || !user.password) return null;
 
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) return null;
@@ -74,7 +69,7 @@ export const authOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
@@ -94,5 +89,6 @@ export const authOptions = {
   secret: process.env.SECRET,
 };
 
+// Đây là cách export chuẩn cho Next.js App Router Route Handler
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
