@@ -1,0 +1,18 @@
+{
+    "editor.fontSize": 13,
+    "workbench.colorTheme": "Better Selenized Dark",
+    "workbench.preferredDarkColorTheme": "Transparent Color Theme",
+    "workbench.preferredHighContrastColorTheme": "Transparent Color Theme",
+    "workbench.preferredHighContrastLightColorTheme": "Transparent Color Theme",
+    "workbench.preferredLightColorTheme": "Transparent Color Theme",
+    "vscode_vibrancy.type": "fullscreen-ui",
+    "vscode_vibrancy.enableAutoTheme": false,
+    "vscode_vibrancy.imports": [
+
+        "/path/to/file"
+    ],
+    "vscode_vibrancy.refreshInterval": 1,
+    "vscode_vibrancy.opacity": 0.2,
+    "vscode_vibrancy.preventFlash": false,
+    "git.ignoreLimitWarning": true
+}
