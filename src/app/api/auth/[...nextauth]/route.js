@@ -4,11 +4,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import connectDB from "@/libs/mongoConnect";
 import { User } from "@/models/User";
-import { UserInfo } from "@/models/UserInfo";
 import { getServerSession } from "next-auth/next";
+import { UserInfo } from "@/models/UserInfo";
 export const authOptions = {
   session: {
-    strategy: "jwt" as SessionStrategy,
+    strategy: "jwt",
     
   },
   providers: [
