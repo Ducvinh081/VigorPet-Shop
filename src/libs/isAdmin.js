@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import connectDB from "@/lib/connectDB";
+import connectDB from "./mongoConnect";
 import UserInfo from "@/models/UserInfo";
 
 export async function isAdmin() {
