@@ -1,4 +1,4 @@
-import { isAdmin } from "@/app/api/auth/[...nextauth]/route";
+import { isAdmin } from "@/libs/authOptions";
 import { MenuItem } from "@/models/MenuItem";
 import connectDB from "@/libs/mongoConnect";
 

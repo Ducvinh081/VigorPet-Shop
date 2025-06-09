@@ -1,4 +1,4 @@
-import {isAdmin} from "@/app/api/auth/[...nextauth]/route";
+import {isAdmin} from "@/libs/authOptions";
 import {User} from "@/models/User";
 import {UserInfo} from "@/models/UserInfo";
 import connectDB from "@/libs/mongoConnect";
