@@ -1,4 +1,4 @@
-import {authOptions, isAdmin} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions, isAdmin} from "@/libs/authOptions";
 import {Order} from "@/models/Order";
 import connectDB from "@/libs/mongoConnect";
 import {getServerSession} from "next-auth";

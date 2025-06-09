@@ -1,4 +1,4 @@
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from "@/libs/authOptions";
 import {MenuItem} from "@/models/MenuItem";
 import {Order} from "@/models/Order";
 import connectDB from "@/libs/mongoConnect"
