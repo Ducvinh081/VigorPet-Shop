@@ -156,7 +156,7 @@ export default function StaticsPage() {
         <div className="flex-1 p-5 m-5 text-center rounded-md bg-slate-200">
           <h1>Tổng doanh thu</h1>
           <h1 className="p-5" style={{ fontSize: "2em", fontWeight: "bold" }}>
-           Tổng doanh thu
+          {totalRevenue.toLocaleString('vi-VN', {style: 'currency', currency: 'VND'})}
           </h1>
         </div>
         <div className="flex-1 p-5 m-5 text-center rounded-md bg-slate-200">
