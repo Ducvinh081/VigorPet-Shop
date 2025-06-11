@@ -1,6 +1,22 @@
-<<<<<<< HEAD
+
 # VigorPet-Shop
 =======
+About This Web:
+
+-   🚀 Project Setup
+-   🗄️ MongoDB 
+-   💳 Stripe Payment Setup
+-   🔑 NEXTAUTHJS
+-   📝 User Signup & Login
+-   🛒 E-Commerce Core
+-   📦 Product & Category Management
+-   🛍️ Shopping Cart Functionality
+-   💰 Checkout with Stripe
+-   👑 Admin Dashboard
+-   📊 Sales Analytics
+-   🎨 Design with Tailwind
+-   🛒 Cart & Checkout Process
+
 ### Setup .env file
 
 ```bash
