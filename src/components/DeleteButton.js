@@ -7,10 +7,10 @@ export default function DeleteButton({label,onDelete}) {
     return (
       <div className="fixed bg-black/80 inset-0 flex items-center h-full justify-center">
         <div className="bg-white p-4 rounded-lg">
-          <div>Are you sure you want to delete?</div>
+          <div>Bạn có chắc muốn xóa?</div>
           <div className="flex gap-2 mt-1">
             <button type="button" onClick={() => setShowConfirm(false)}>
-              Cancel
+              Thoát
             </button>
             <button
               onClick={() => {
@@ -19,7 +19,7 @@ export default function DeleteButton({label,onDelete}) {
               }}
               type="button"
               className="primary">
-              Yes,&nbsp;delete!
+              Xóa
             </button>
           </div>
         </div>

@@ -10,6 +10,8 @@ import { getServerSession } from "next-auth/next";
 export const authOptions = {
     session: {
       strategy: "jwt", 
+      maxAge: 30 * 60, // 30 phút (30 * 60 giây)
+      updateAge: 5 * 60, // Cập nhật session mỗi 5 phút
       
     },
     providers: [

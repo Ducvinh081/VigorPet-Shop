@@ -1,16 +1,14 @@
 'use client';
 import {CartContext, cartProductPrice} from "@/components/AppContext";
-import Trash from "@/components/icons/Trash";
 import AddressInputs from "@/components/layout/AddressInputs";
 import SectionHeaders from "@/components/layout/SectionHeaders";
 import CartProduct from "@/components/menu/CartProduct";
 import {useProfile} from "@/components/UseProfile";
-import Image from "next/image";
 import {useContext, useEffect, useState} from "react";
 import toast from "react-hot-toast";
 
 export default function CartPage() {
-  const {cartProducts,removeCartProduct} = useContext(CartContext);
+  const {cartProducts, removeCartProduct} = useContext(CartContext);
   const [address, setAddress] = useState({});
   const {data:profileData} = useProfile();
   const shippingfee = 30000;
@@ -18,7 +16,7 @@ export default function CartPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (window.location.href.includes('canceled=1')) {
-        toast.error('Payment failed 😔');
+        toast.error('Thanh toán thất bại 😔');
       }
     }
   }, []);
@@ -45,6 +43,7 @@ export default function CartPage() {
   function handleAddressChange(propName, value) {
     setAddress(prevAddress => ({...prevAddress, [propName]:value}));
   }
+  
   async function proceedToCheckout(ev) {
     ev.preventDefault();
     // address and shopping cart products
@@ -92,40 +91,45 @@ export default function CartPage() {
       <div className="text-center">
         <SectionHeaders mainHeader="Giỏ hàng" />
       </div>
-      <div className="mt-8 grid gap-8 grid-cols-2">
+      <div className="mt-8 grid gap-8 grid-cols-1 md:grid-cols-2">
         <div>
           {cartProducts?.length === 0 && (
             <div>{"Không có sản phẩm nào"}</div>
           )}
           {cartProducts?.length > 0 && cartProducts.map((product, index) => (
             <CartProduct
-              key={index}
+              key={`${product._id}-${index}`} // Better key for unique identification
               product={product}
               onRemove={removeCartProduct}
               index={index}
             />
           ))}
-          <div className="py-2 pr-16 flex justify-end items-center">
-            <div className="text-gray-500">
+          <div className="py-4 pr-4 flex justify-end items-center border-t">
+            <div className="text-gray-500 text-right">
               Giá tạm tính<br />
               Giá ship<br />
-              Giá tổng
+              <span className="font-semibold text-black">Giá tổng</span>
             </div>
-            <div className="font-semibold pl-2 text-right">
-              {subtotal}đ<br />
-              {shippingfee}đ<br />
-              {subtotal + shippingfee}đ
+            <div className="font-semibold pl-4 text-right">
+              {subtotal.toLocaleString()}đ<br />
+              {shippingfee.toLocaleString()}đ<br />
+              <span className="text-lg">{(subtotal + shippingfee).toLocaleString()}đ</span>
             </div>
           </div>
         </div>
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2>Thanh toán</h2>
+        <div className="bg-gray-100 p-4 rounded-lg h-fit">
+          <h2 className="text-xl font-semibold mb-4">Thông tin thanh toán</h2>
           <form onSubmit={proceedToCheckout}>
             <AddressInputs
               addressProps={address}
               setAddressProp={handleAddressChange}
             />
-            <button type="submit">Thanh toán {subtotal+shippingfee}đ</button>
+            <button 
+              type="submit"
+              className="bg-primary text-white px-6 py-3 rounded-lg w-full font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Thanh toán {(subtotal+shippingfee).toLocaleString()}đ
+            </button>
           </form>
         </div>
       </div>

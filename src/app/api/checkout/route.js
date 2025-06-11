@@ -1,4 +1,4 @@
-import {authOptions} from "@/libs/authOptions";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 import {MenuItem} from "@/models/MenuItem";
 import {Order} from "@/models/Order";
 import connectDB from "@/libs/mongoConnect"
@@ -20,7 +20,6 @@ export async function POST(req) {
 
   const stripeLineItems = [];
   for (const cartProduct of cartProducts) {
-
     const productInfo = await MenuItem.findById(cartProduct._id);
 
     let productPrice = productInfo.basePrice;
@@ -41,7 +40,7 @@ export async function POST(req) {
     const productName = cartProduct.name;
 
     stripeLineItems.push({
-      quantity: 1,
+      quantity: cartProduct.quantity || 1, // Sử dụng quantity từ cartProduct
       price_data: {
         currency: 'VND',
         product_data: {
@@ -67,31 +66,11 @@ export async function POST(req) {
         shipping_rate_data: {
           display_name: 'Delivery fee',
           type: 'fixed_amount',
-          fixed_amount: {amount: 30000, currency: 'VND'},
+          fixed_amount: {amount: shippingfee, currency: 'VND'},
         },
       }
     ],
   });
-  try {
-    const stripeSession = await stripe.checkout.sessions.retrieve(session_id);
-
-    if (stripeSession.payment_status === "paid") {
-      const orderId = stripeSession.metadata.orderId;
-
-      // Update đơn hàng trong MongoDB
-      await Order.findByIdAndUpdate(orderId, { paid: true });
-
-      return Response.json({
-        message: "Payment confirmed and order updated",
-        orderId,
-      });
-    } else {
-      return Response.json({ message: "Payment not completed yet" }, { status: 400 });
-    }
-  } catch (error) {
-    console.error("Error checking payment:", error);
-    return Response.json({ error: "Something went wrong" }, { status: 500 });
-  }
 
   return Response.json(stripeSession.url);
 }

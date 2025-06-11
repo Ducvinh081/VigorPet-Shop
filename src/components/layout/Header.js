@@ -6,7 +6,7 @@ import ShoppingCart from "@/components/icons/ShoppingCart";
 import { signOut, useSession } from "next-auth/react";
 import { useContext, useState, useEffect } from "react";
 
-function AuthLinks({ status, userName }) {
+function AuthLinks({ status, userName, onSignOut }) {
   if (status === 'authenticated') {
     return (
       <>
@@ -16,7 +16,7 @@ function AuthLinks({ status, userName }) {
           </>
         </Link>
         <button
-          onClick={() => signOut({ callbackUrl: '/' })}
+          onClick={onSignOut}
           className="bg-primary rounded-full text-white px-8 py-2">
           {"Thoát"}
         </button>
@@ -42,21 +42,27 @@ export default function Header() {
   const status = session?.status;
   const userData = session.data?.user;
   let userName = userData?.name || userData?.email;
-  const { cartProducts } = useContext(CartContext);
+  const { cartProducts, resetCartProducts } = useContext(CartContext);
 
-  // --- THAY ĐỔI QUAN TRỌNG Ở ĐÂY ---
   const [isClient, setIsClient] = useState(false); // State để kiểm tra nếu đang ở client
   const [displayCartCount, setDisplayCartCount] = useState(0); // State để lưu số lượng hiển thị
 
   useEffect(() => {
     // Chỉ chạy trên client sau khi hydration
     setIsClient(true);
-    // Cập nhật số lượng giỏ hàng sau khi cartProducts được load từ localStorage
-    setDisplayCartCount(cartProducts.length);
+    // Tính tổng quantity của tất cả sản phẩm trong giỏ hàng
+    const totalQuantity = cartProducts.reduce((total, product) => {
+      return total + (product.quantity || 1);
+    }, 0);
+    setDisplayCartCount(totalQuantity);
   }, [cartProducts]); // Theo dõi sự thay đổi của cartProducts từ Context
 
-  // ----------------------------------
-
+  const handleSignOut = async () => {
+      // Thực hiện đăng xuất - Cart sẽ tự động được reset trong AppContext
+      await signOut({ callbackUrl: '/' });
+      resetCartProducts();
+  }
+// ----------------------------------
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   if (userName && userName.includes(' ')) {
     userName = userName.split(' ')[0];
@@ -65,7 +71,7 @@ export default function Header() {
   return (
     <header>
       <div className="flex items-center md:hidden justify-between">
-        <Link className="text-yellow-500 font-semibold text-2xl" href={'/'}>
+        <Link className="text-primary font-semibold text-2xl" href={'/'}>
           VigorPet
         </Link>
         <div className="flex gap-8 items-center">
@@ -112,7 +118,7 @@ export default function Header() {
           <Link className="whitespace-nowrap" href={'/#contact'}>Liên hệ</Link>
         </nav>
         <nav className="flex items-center gap-4 text-gray-500 font-semibold">
-          <AuthLinks status={status} userName={userName}/>
+          <AuthLinks status={status} userName={userName} onSignOut={handleSignOut}/>
           <Link href={'/cart'} className="relative">
             <ShoppingCart />
             {/* Sử dụng isClient và displayCartCount ở đây cho desktop */}

@@ -1,8 +1,7 @@
 'use client'
 import { createContext, useEffect, useState } from "react";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider,useSession  } from "next-auth/react";
 import toast from "react-hot-toast";
-
 // Define cartProductPrice outside the component so it can be imported directly
 // and also passed through context for convenience.
 export function cartProductPrice(cartProduct) {
@@ -21,7 +20,6 @@ export function cartProductPrice(cartProduct) {
   return price * (cartProduct.quantity || 1); // IMPORTANT: Multiply by quantity here
 }
 
-
 export const CartContext = createContext({
   cartProducts: [],
   // Explicitly define signature for clarity in context consumers
@@ -32,7 +30,9 @@ export const CartContext = createContext({
   cartProductPrice: (product) => 0, // Add cartProductPrice to context definition
 });
 
-export function AppProvider({ children, session }) {
+// Tách riêng CartProvider ra khỏi SessionProvider
+export function CartProvider({ children }) {
+  const { data: session, status } = useSession();
   const [cartProducts, setCartProducts] = useState(() => {
     // Chạy khối này 1 lần khi mount để khởi tạo state ban đầu
     if (typeof window === "undefined") {
@@ -43,7 +43,6 @@ export function AppProvider({ children, session }) {
       if (!saved) return [];
       const parsed = JSON.parse(saved);
       // Ensure each parsed item has a quantity, default to 1 if missing
-      // Also, re-calculate the price based on original properties if necessary (though cartProductPrice handles it now)
       return Array.isArray(parsed) ? parsed.map(item => ({ ...item, quantity: item.quantity || 1 })) : [];
     } catch (error) {
       console.error("Error parsing cart from localStorage:", error);
@@ -60,12 +59,21 @@ export function AppProvider({ children, session }) {
         console.error("Error saving cart to localStorage:", error);
       }
     }
+    
   }, [cartProducts]); // Dependency on cartProducts
 
+  function resetCartProducts() {
+    setCartProducts([]);
+    // Show toast after state update
+    setTimeout(() => {
+    }, 0);
+  }
   function clearCart() {
     setCartProducts([]);
-    // localStorage sẽ tự động được cập nhật qua useEffect
-    toast.success("Đã xóa hết giỏ hàng");
+    // Show toast after state update
+    setTimeout(() => {
+      toast.success("Đã xóa hết giỏ hàng");
+    }, 0);
   }
 
   function removeCartProduct(indexToRemove) {
@@ -73,22 +81,18 @@ export function AppProvider({ children, session }) {
       const newCartProducts = prevCartProducts.filter(
         (_, index) => index !== indexToRemove
       );
-      toast.success("Đã xóa sản phẩm");
       return newCartProducts;
     });
+    // Show toast after state update
+    setTimeout(() => {
+      toast.success("Đã xóa sản phẩm");
+    }, 0);
   }
 
-  // MODIFIED addToCart to store quantity directly on the item
+  // MODIFIED addToCart to merge products with same ID, size, and extras
   function addToCart(product, size = null, extras = [], quantity = 1) {
     setCartProducts((prevProducts) => {
-      // Create a single cart product object with the specified quantity
-      const cartProductToAdd = { ...product, size, extras, quantity: quantity };
-
-      // Optional: If you want to merge identical items (same product, size, and extras)
-      // instead of adding new line items, you'd implement that logic here.
-      // For now, it adds a new line item even if product is identical.
-      // Example of merging:
-      /*
+      // Find existing product with same ID, size, and extras
       const existingProductIndex = prevProducts.findIndex(p =>
         p._id === product._id &&
         JSON.stringify(p.size) === JSON.stringify(size) &&
@@ -96,27 +100,29 @@ export function AppProvider({ children, session }) {
       );
 
       if (existingProductIndex !== -1) {
+        // Update existing product quantity
         const updatedProducts = [...prevProducts];
         updatedProducts[existingProductIndex] = {
           ...updatedProducts[existingProductIndex],
-          quantity: updatedProducts[existingProductIndex].quantity + quantity
+          quantity: (updatedProducts[existingProductIndex].quantity || 1) + quantity
         };
-        toast.success(`Đã cập nhật số lượng ${quantity} cho sản phẩm.`);
         return updatedProducts;
       } else {
-        toast.success(`${quantity} sản phẩm đã được thêm vào giỏ hàng`);
+        // Add new product
+        const cartProductToAdd = { ...product, size, extras, quantity: quantity };
         return [...prevProducts, cartProductToAdd];
       }
-      */
-
-      // Current logic: Always add as a new line item (which is what your CartProduct and CartPage expect now)
-      toast.success(`${quantity} sản phẩm đã được thêm vào giỏ hàng`);
-      return [...prevProducts, cartProductToAdd];
     });
+    // Show toast after state update
+    setTimeout(() => {
+    }, 0);
   }
 
   // NEW: Function to update quantity for a specific item in the cart
   function updateCartProductQuantity(indexToUpdate, delta) {
+    let productName = '';
+    let quantityChanged = false;
+    
     setCartProducts(prevCartProducts => {
       const newCartProducts = [...prevCartProducts];
       if (newCartProducts[indexToUpdate]) {
@@ -128,28 +134,44 @@ export function AppProvider({ children, session }) {
             ...newCartProducts[indexToUpdate],
             quantity: newQuantity,
           };
-          toast.success(`Số lượng đã cập nhật cho ${newCartProducts[indexToUpdate].name}`);
+          productName = newCartProducts[indexToUpdate].name;
+          quantityChanged = true;
         }
       }
       return newCartProducts;
     });
+
+    // Show toast after state update if quantity was changed
+    if (quantityChanged) {
+      setTimeout(() => {
+      }, 0);
+    }
   }
 
-
   return (
-    <SessionProvider session={session}>
-      <CartContext.Provider
-        value={{
-          cartProducts,
-          addToCart,
-          removeCartProduct,
-          updateCartProductQuantity, // Expose the new function
-          clearCart,
-          cartProductPrice, // Pass cartProductPrice through context
-        }}
-      >
+    <CartContext.Provider
+      value={{
+        cartProducts,
+        addToCart,
+        removeCartProduct,
+        updateCartProductQuantity, // Expose the new function
+        clearCart,
+        cartProductPrice, // Pass cartProductPrice through context
+        resetCartProducts
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+// AppProvider bây giờ chỉ wrap SessionProvider và CartProvider
+export function AppProvider({ children }) {
+  return (
+    <SessionProvider>
+      <CartProvider>
         {children}
-      </CartContext.Provider>
+      </CartProvider>
     </SessionProvider>
   );
 }

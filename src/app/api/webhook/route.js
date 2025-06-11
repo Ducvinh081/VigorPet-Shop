@@ -17,14 +17,28 @@ export async function POST(req) {
     return Response.json(e, {status: 400});
   }
 
-  if (event.type === 'checkout.session.completed') {
-    console.log(event);
-    const orderId = event?.data?.object?.metadata?.orderId;
-    const isPaid = event?.data?.object?.payment_status === 'paid';
-    if (isPaid) {
-      await Order.updateOne({_id:orderId}, {paid:true});
-    }
+ // Xử lý các sự kiện từ Stripe
+ if (event.type === 'checkout.session.completed') {
+  const session = event.data.object;
+  const orderId = session.metadata?.orderId;
+  
+  if (orderId) {
+    // Cập nhật trạng thái paid thành true
+    await Order.findByIdAndUpdate(orderId, { paid: true });
+    console.log(`Order ${orderId} marked as paid`);
   }
+}
 
-  return Response.json('ok', {status: 200});
+if (event.type === 'payment_intent.succeeded') {
+  const paymentIntent = event.data.object;
+  const orderId = paymentIntent.metadata?.orderId;
+  
+  if (orderId) {
+    // Backup: cập nhật trạng thái paid thành true
+    await Order.findByIdAndUpdate(orderId, { paid: true });
+    console.log(`Order ${orderId} marked as paid via payment_intent`);
+  }
+}
+
+  return Response.json('OK', {status: 200});
 }

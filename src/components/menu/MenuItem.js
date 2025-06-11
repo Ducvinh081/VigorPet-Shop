@@ -3,10 +3,13 @@ import { CartContext } from "@/components/AppContext";
 import MenuItemTile from "@/components/menu/MenuItemTile";
 import Image from "next/image";
 import { useContext, useState } from "react";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function MenuItem(menuItem) {
-
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const {
     image, name, description, basePrice,
     sizes, extraIngredientPrices,
@@ -20,6 +23,12 @@ export default function MenuItem(menuItem) {
   const { addToCart } = useContext(CartContext);
 
   function handlePreAddToCartButtonClick() {
+    // Kiểm tra authentication trước khi mở popup
+    if (status === "loading") {
+      toast.error("Đang tải thông tin đăng nhập...");
+      return;
+    }
+
     // Reset quantity and selections when opening the popup
     setSelectedQuantity(1);
     setSelectedSize(sizes?.[0] || null);
@@ -28,7 +37,15 @@ export default function MenuItem(menuItem) {
   }
 
   async function handleAddToCartButtonClick() {
+    // Double check authentication
+    if (!session) {
+      toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
+      router.push('/login');
+      return;
+    }
+
     addToCart(menuItem, selectedSize, selectedExtras, selectedQuantity);
+    toast.success(`Đã thêm ${selectedQuantity} ${name} vào giỏ hàng!`);
     setShowPopup(false);
   }
 
@@ -46,7 +63,7 @@ export default function MenuItem(menuItem) {
   // Helper function to calculate current item price
   let currentCalculatedPrice = basePrice;
   if (selectedSize) {
-    currentCalculatedPrice += selectedSize.price;
+    currentCalculatedPrice = selectedSize.price;
   }
   if (selectedExtras?.length > 0) {
     for (const extra of selectedExtras) {
@@ -68,19 +85,20 @@ export default function MenuItem(menuItem) {
               className="overflow-y-auto pr-2"
               style={{ maxHeight: 'calc(100vh - 100px)' }}>
 
-              <div className="relative w-full pb-[75%] mb-4 rounded-lg overflow-hidden shadow-sm"> {/* NEW: Container for aspect ratio */}
+              <div className="relative w-full pb-[75%] mb-4 rounded-lg overflow-hidden shadow-sm">
                 <Image
                   src={image}
                   alt={name}
-                  fill={true} // Use fill prop with Next.js Image
-                  className="object-cover" // Ensures image covers the area, cropping if needed
+                  fill={true}
+                  className="object-cover"
                 />
               </div>
 
               <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">{name}</h2>
-              <p className="text-justify text-gray-600 text-sm mb-4 leading-relaxed"> {/* MODIFIED: text-justify */}
+              <p className="text-justify text-gray-600 text-sm mb-4 leading-relaxed">
                 {description}
               </p>
+              
               {sizes?.length > 0 && (
                 <div className="py-2">
                   <h3 className="text-lg font-semibold text-center text-gray-700 mb-3">{"Chọn loại"}</h3>
@@ -98,15 +116,16 @@ export default function MenuItem(menuItem) {
                         <span className="text-base text-gray-800">{size.name}</span>
                       </span>
                       <span className="text-base font-semibold text-gray-800">
-                        ${basePrice + size.price}đ
+                        {size.price}đ
                       </span>
                     </label>
                   ))}
                 </div>
               )}
+              
               {extraIngredientPrices?.length > 0 && (
                 <div className="py-2">
-                  <h3 className="text-lg font-semibold text-center text-gray-700 mb-3">Any extras?</h3>
+                  <h3 className="text-lg font-semibold text-center text-gray-700 mb-3">Món thêm</h3>
                   {extraIngredientPrices.map(extraThing => (
                     <label
                       key={extraThing._id}
